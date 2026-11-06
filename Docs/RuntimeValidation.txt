@@ -1,0 +1,10 @@
+Backstage: wardrobe state and preview OK
+Mirror: gesture gate, wrong toy reset, correct sequence and exit OK
+Illusion: locked door, layout roots, wrong tile reset, sequence and B exit OK
+Puppet: unequal gate, 2:2 balance, weight visibility, beam alignment and optional show start OK
+Toy: wrong melody reset, C E G E notes, string switches and exit gate OK
+Exterior: four performers, look-back trigger, player freeze and final title fade OK
+Play mode: frame counter advancing. Final clean backstage/finale rerun: console errors 0, warnings 0.
+Harness note: the first finale teleport temporarily left CharacterController disabled and produced Move errors. Re-enabling it in the same teleport command removed those errors; the finale was rerun successfully with the controller enabled.
+Final compilation: errors 0, warnings 0. Six scene structure checks passed after label sizing adjustments.
+Note: checks invoked puzzle actions through CLI; full manual keyboard/mouse traversal remains to be reviewed.

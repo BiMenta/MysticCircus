@@ -1,0 +1,6 @@
+00_Backstage: OK (camera, player, room logic, no missing scripts)
+01_MirrorRoom: OK (camera, player, room logic, no missing scripts)
+02_IllusionHall: OK (camera, player, room logic, no missing scripts)
+03_PuppetStage: OK (camera, player, room logic, no missing scripts)
+04_ToyRoom: OK (camera, player, room logic, no missing scripts)
+05_ExteriorFinale: OK (camera, player, room logic, no missing scripts)

@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 1
+    path: Assets/_Project/Scenes/00_Backstage.unity
+    guid: f3d261b387a494609aeb9a83c154f881
+  - enabled: 1
+    path: Assets/_Project/Scenes/01_MirrorRoom.unity
+    guid: aa9926dead906450a8ac49c40d949179
+  - enabled: 1
+    path: Assets/_Project/Scenes/02_IllusionHall.unity
+    guid: 043d584c8fd5d4bedb428bf5fb8c6515
+  - enabled: 1
+    path: Assets/_Project/Scenes/03_PuppetStage.unity
+    guid: 274cb4c53c8514255afa8875001b55fb
+  - enabled: 1
+    path: Assets/_Project/Scenes/04_ToyRoom.unity
+    guid: f54a3d1f2203746fa9a12e219f9d309f
+  - enabled: 1
+    path: Assets/_Project/Scenes/05_ExteriorFinale.unity
+    guid: e6c0d884c0cf842efb7e4fdaf6efcaae
+  m_configObjects:
+    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 289c1b55c9541489481df5cc06664110, type: 3}
