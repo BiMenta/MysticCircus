@@ -205,5 +205,5 @@ unity test --mode PlayMode --output /tmp/play.xml .
 - `PuppetStageController`：天平倾斜方向反了，右边重时左边下沉。
 - `IllusionRoomController`：小丑“指向” C 门时朝向不对。
 - `05_ExteriorFinale`：地面没有边界，玩家能走到边缘掉下去。
-- 世界文字会穿透物体显示：默认字体材质的深度问题。
+- 待确认：世界文字可能会穿透物体显示。这是根据默认字体材质的常见行为推断的，尚未实际验证。
 - 各关的 HUD 目标文字直接写出了答案。
