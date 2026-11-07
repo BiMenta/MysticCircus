@@ -10,7 +10,7 @@
 | 新增一段短片 | 把视频放进 `Films/`，在 `story.json` 加一个 `film` 节点，再把上一个节点的 `next` 指向它 |
 | 调整顺序、删掉一段 | 只改 `story.json` 里的 `next` |
 | 换一个关卡 | 新建场景，把节点的 `scene` 改成新场景名，再同步 Build Settings（见下文） |
-| 短片还没做好 | 节点先写好，文件不放。没有选项的短片会自动跳过；有选项的会在黑屏上显示选项 |
+| 短片还没做好 | 节点先写好，文件不放。没有选项的短片会自动跳过；有选项或叠加文字的会在黑屏上照常进行 |
 
 每次改完，在 Unity 里运行 `Mystic Circus > Validate Story`，它会一次列出所有问题。`ShippedStory_HasEveryLevelAndFilmItNames` 测试做同样的检查，所以短片缺文件时这个测试会失败，这是提醒，不影响游戏运行。
 
@@ -57,11 +57,52 @@
 | `video` | 短片 | `Films/` 里的文件名 |
 | `subtitles` | 短片 | 字幕，单位是秒。可不填 |
 | `unskippable` | 短片 | 设为 `true` 后不能跳过，默认可以跳过 |
+| `skippableOnceSeen` | 短片 | 和 `unskippable` 一起用：第一次不能跳过，任意周目看过后可以跳过 |
+| `tailSeconds` | 短片 | 视频结束后保持黑场的秒数，用来放叠加文字；选项在黑场结束后出现 |
+| `overlays` | 短片 | 叠加文字，写法见下文 |
+| `hideChrome` | 短片 | 选项不带遮罩、编号和倒计时条，用于要求画面干净的场合 |
 | `choices` | 短片 | 分支选项，短片播完后显示，最后一帧停在画面上。选项不能跳过，跳过短片会直接进入选择。键盘只支持 1 到 4 |
 | `setFlag` | 选项 | 记录这次选择，后面的节点可以用 `routes` 判断。也可以在关卡代码里用 `GameSession.Instance.SetFlag` 记录 |
 | `promptZh`、`promptEn` | 短片 | 选项上方的问题 |
 | `choiceSeconds` | 短片 | 选择时限（秒），到时自动选 `defaultChoice`。0 表示一直等待 |
 | `defaultChoice` | 短片 | 超时的默认选项，从 0 开始 |
+
+## 叠加文字
+
+`overlays` 画在视频上，或者画在视频结束后的黑场上。时间从视频开头算起，文字随语言设置切换。
+
+```json
+{
+  "id": "film_prologue",
+  "type": "film",
+  "video": "film_prologue.mp4",
+  "unskippable": true,
+  "skippableOnceSeen": true,
+  "hideChrome": true,
+  "tailSeconds": 34,
+  "overlays": [
+    { "at": 46, "until": 55, "kind": "typewriter", "zh": "你醒了。", "en": "You're awake." },
+    { "at": 55, "until": 78, "kind": "title", "zh": "最后的谢幕", "en": "The Last Curtain Call" },
+    { "at": 58, "until": 78, "kind": "doubled", "zh": "第 47 场|第 47 天", "en": "Show No. 47|Day 47" }
+  ],
+  "next": "level_u1_mirror"
+}
+```
+
+| `kind` | 效果 |
+| --- | --- |
+| `typewriter` | 逐字出现，默认每字 0.5 秒，可用 `charSeconds` 调整 |
+| `title` | 大号标题，缓慢淡入 |
+| `doubled` | 用 `\|` 分开的两行叠在同一位置，错开几个像素并缓慢漂移 |
+| `caption` | 普通一行字 |
+
+可选字段：`fadeIn`、`fadeOut`（秒）、`y`（垂直位置，占屏幕高度的比例）。
+
+这份示例就是方案里的序章配置，**目前还没有写进 `story.json`**。
+
+## 关卡内播放的视频
+
+二合短片和镜面视频不是剧情节点，由代码或组件引用，路径相对 `Films/`，可以放子目录，如 `u1/1-5.mp4`。`Validate Story` 不会检查这些文件。缺文件时：二合短片跳过，镜面显示纯色，都只写一条警告。
 
 ## 短片规格
 

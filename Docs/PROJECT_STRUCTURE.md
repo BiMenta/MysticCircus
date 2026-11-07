@@ -30,7 +30,8 @@ Assets/_Project/
 │   ├── Materials/          9 个占位材质：酒红、旧金、青绿、象牙、深夜蓝、三种玩具色、镜面占位
 │   ├── Models/             （空）正式模型放这里
 │   └── Shaders/
-│       └── PlanarMirror.shader            平面镜着色器，配合 PlanarMirror.cs
+│       ├── PlanarMirror.shader            平面镜着色器，配合 PlanarMirror.cs
+│       └── Resources/                     显影调色和镜面视频的着色器，放这里才会被打包
 ├── Audio/
 │   ├── Music/              7 首 BGM，尚未绑定到场景
 │   └── SFX/                （空）录制音效放这里；目前音效由 Sfx.cs 程序合成
@@ -45,8 +46,8 @@ Assets/_Project/
 ├── Scripts/                运行时代码，详见第 3 节
 ├── Settings/               （空）配置资产放这里
 └── Tests/
-    ├── EditMode/           纯逻辑测试：PuzzleLogicTests.cs、StoryGraphTests.cs
-    └── PlayMode/           引擎内测试：FoundationTests.cs、StoryFlowTests.cs，Fixtures/ 放测试视频
+    ├── EditMode/           纯逻辑测试：PuzzleLogicTests.cs、StoryGraphTests.cs、NarrativeSystemsTests.cs
+    └── PlayMode/           引擎内测试：FoundationTests.cs、StoryFlowTests.cs、NarrativeFlowTests.cs，Fixtures/ 放测试视频
 ```
 
 标为“空”的目录里只有一个 `.gitkeep`，用来让 Git 保留目录。
@@ -114,6 +115,13 @@ Assets/_Project/
 | `Levels/ToyRoomController.cs` | 内容 | 玩具房规则 |
 | `Levels/EndingSequence.cs` | 内容 | 室外谢幕流程 |
 | `UI/PrototypeHUD.cs` | 内容 | 原型 HUD 与 F1 调试跳关，正式 UI 会替换它 |
+| `Reveal/` | 底层 | 显影：切层、调色、声音处理、镜面视频、快门图标 |
+| `Memory/` | 底层 | 碎片与配方表、相簿、守则、信任值与结局、拾取和观察组件 |
+| `Presentation/` | 底层 | 时机判定 `TimingQte`、一掠而过的 `Apparition` |
+| `Core/MetaProgress.cs` | 底层 | 跨周目数据，新游戏不清除 |
+| `Story/FilmOverlayMath.cs` | 底层 | 短片叠加层的时间规则 |
+| `Player/DelayedMirrorBody.cs` | 底层 | 慢半拍的镜中身体 |
+| `UI/GuiKit.cs` | 底层 | IMGUI 公共绘制：虚拟画布、颜色转换、鼠标命中 |
 | `MysticCircus.Runtime.asmdef` | 底层 | 把以上代码编译为一个程序集 |
 
 ## 4. 程序集依赖
@@ -132,7 +140,10 @@ MysticCircus.Runtime  ──依赖──▶  Unity.InputSystem
 
 | 文件 | 内容 |
 | --- | --- |
+| `PROJECT_GUIDE.md` | 项目现状，以及修改、新增关卡场景和模型的操作，接手项目先读这份 |
 | `PROJECT_STRUCTURE.md` | 本文档 |
+| `最后的谢幕-单元内容.md` | 剧本整理：序章、四个单元、终章和结局 |
+| `最后的谢幕-序章与单元一方案.md` | 序章和单元一的实现方案 |
 | `CONTENT_GUIDE.md` | 替换关卡和短片的操作指南 |
 | `FOUNDATION.md` | 底层的用法、约定、测试和已知限制 |
 | `DEVELOPMENT.md` | 设计方向、v0.1 原型的边界和迭代顺序 |

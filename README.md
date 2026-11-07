@@ -1,8 +1,9 @@
 # Mystic Circus · 神秘马戏团
 
-一款复古、梦幻、略带诡异气氛的 3D 解谜冒险游戏。目前包含 **v0.1 场景与交互灰盒原型**（基础几何体、占位表演者和 Built-in Standard 材质）、**v0.2 可复用底层**和 **v0.3 互动影片框架**：关卡与 AI 短片由一份剧情文件串起来，短片可以带分支选项。
+一款复古、梦幻、略带诡异气氛的 3D 解谜冒险游戏。目前包含 **v0.1 场景与交互灰盒原型**（基础几何体、占位表演者和 Built-in Standard 材质）、**v0.2 可复用底层**、**v0.3 互动影片框架**（关卡与 AI 短片由一份剧情文件串起来，短片可以带分支选项）和 **v0.4 《最后的谢幕》通用玩法模块**（显影、相簿、二合、守则等，尚未接入关卡）。
 
-- 想替换关卡或短片、调整剧情顺序：看 [Docs/CONTENT_GUIDE.md](Docs/CONTENT_GUIDE.md)。
+- **第一次接手，或想了解现状、修改和新增关卡场景、换模型：看 [Docs/PROJECT_GUIDE.md](Docs/PROJECT_GUIDE.md)。**
+- 想替换短片、调整剧情顺序：看 [Docs/CONTENT_GUIDE.md](Docs/CONTENT_GUIDE.md)。
 - 想了解每个目录和文件的作用：看 [Docs/PROJECT_STRUCTURE.md](Docs/PROJECT_STRUCTURE.md)。
 - 想用底层做新内容：看 [Docs/FOUNDATION.md](Docs/FOUNDATION.md)。
 - 想了解架构和原型的边界：看 [Docs/DEVELOPMENT.md](Docs/DEVELOPMENT.md)。
@@ -19,7 +20,7 @@ unity open .
 ```
 
 - 打开 `Assets/_Project/Scenes/Boot.unity` 后点击 Play，从剧情开头运行。也可以直接打开任意关卡场景运行，剧情会从这一关接上。
-- WASD 或方向键移动，Shift 奔跑，鼠标观察，E 交互，H 提示（当前关卡尚未配置提示内容），Esc 释放鼠标，单击重新锁定鼠标。
+- WASD 或方向键移动，Shift 奔跑，鼠标观察，E 交互，Tab 相簿，Q 切换显影层（需要场景放了 `RevealSystem`，目前还没有），H 提示（当前关卡尚未配置提示内容），Esc 释放鼠标，单击重新锁定鼠标。
 - 短片中：空格或回车跳过；出现选项时，鼠标点击或按数字键选择。
 - 按住 F1 显示调试导航，列出所有剧情节点；先按 Esc 再点击按钮可直接跳到任意关卡或短片。
 - 当前界面使用英文占位文案，中文剧情与完整本地化留待后续制作。

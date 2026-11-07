@@ -181,6 +181,35 @@ public sealed class BellRoomController : RoomController
 | `SameLayout(a, b)` | 比较摆放是否一致 |
 | `Decoys(correct, n, rng)` | 所有错误选项，顺序随机 |
 
+### 全片通用玩法（《最后的谢幕》）
+
+规则见 [最后的谢幕-单元内容.md](最后的谢幕-单元内容.md)。下面的模块不含任何单元内容，单元只负责摆放和配置。`Album`、`RuleSheetView`、`TimingQte` 随 `GameSession` 自动创建；进度都存成进度标记，不另存档。
+
+| 模块 | 用法 |
+| --- | --- |
+| `RevealSystem` | 显影。场景放一个即可，它会自动给相机加调色、加快门图标。`Unlock()` 交给玩家，`Q` 或点图标切换梦界 → 暖 → 冷；`Hold()`/`Release()` 暂停切换，`Set()` 由剧情直接切层，`Changed` 事件通知其他物体 |
+| `RevealLayerObject` | 勾选物体在哪几层出现，隐藏时碰撞和互动一起关闭。物体在场景里要保持激活 |
+| `RevealGrade` | 全屏调色，四套外观 `Dream/Warm/Cold/White`；`Override(look)` 强制外观，传 null 交还给当前层 |
+| `RevealAudio` | 一条循环音乐按层切换处理（隔壁房间、旧录音带），`PickUpTheBeat()` 让音乐清晰地重新起拍 |
+| `RevealVideoSurface` | 表面在指定层循环播放视频，如镜子变成回忆画面。视频路径相对 `StreamingAssets/Films`，缺文件时显示纯色 |
+| `MemoryCatalog` | 全部碎片和二合配方的数据表，五组都已录入；改内容改这里 |
+| `Album` | 相簿，`Tab` 打开，可拖拽二合。`Collect`、`Observe`、`TryCombine`、`Capture`；`Combined` 在二合短片播完后触发。碎片配图放 `Resources/Fragments/<id>`，没有图时显示色块 |
+| `FragmentPickup`、`Inspectable`、`RuleBoard` | 挂在带 `Interactable` 的物体上：拾取碎片、推镜头看细节并收进观察页、打开守则 |
+| `RuleSheet`、`RuleSheetView` | 守则文字和全屏阅读，痕迹由 `combo.*` 标记推出，每个单元的守则都读同一份进度 |
+| `Trust`、`Endings` | 信任值和结局判定。信任值 = `trust.` 标记数，同一时刻不会重复计分；`Trust.Award(id)` 记一次 |
+| `MetaProgress` | 跨周目数据，独立存 `meta.json`，新游戏不清除：场次（从 47 开始）、看过的短片、达成的结局 |
+| `TimingQte` | 无文字的时机判定：外圈收拢到内圈时按键。失败只回报 false，由调用方决定重置什么 |
+| `FilmPlayer.PlayClip(path)` | 关卡内全屏播放短片，播完回到原位；缺文件时跳过并警告 |
+| 短片节点新字段 | `overlays`（`typewriter`/`title`/`doubled`/`caption`）、`tailSeconds`（片尾黑场）、`hideChrome`（选项不带遮罩和编号）、`skippableOnceSeen`（看过后可跳过） |
+| `PlanarMirror.OnlyHere` | 列表里的物体只在这面镜子里出现，运行时可改，比如演员换镜子 |
+| `DelayedMirrorBody` | 镜中身体慢半拍，`Stretch()` 让所有倒影同时明显变慢 |
+| `Apparition` | 隔一段时间一掠而过的物体，如菱格袖口 |
+| `PuzzleLogic.MirrorSlot` | 按面对玩家的表演者自身左右算平台位置 |
+| `PrototypeHUD.Minimal` | 只留准星的无文字模式，`F1` 调试导航仍可用 |
+| `Sfx` | 新增 `Shutter`、`Heartbeat`、`Glass`、`Tap`、`Slide`、`Mechanism`、`Ripple`。`Resources/Sfx/<名字>` 放录音后会替换合成音 |
+
+`InputGate.Release()` 之后，当帧仍算禁用，关闭窗口的那次按键不会再传给玩家。用 `GuiKit` 画界面时直接写想要显示的颜色，它会处理线性色彩空间。
+
 ## 5. 约定
 
 - 模型正面朝局部 **-Z**，`PuppetRig` 的鞠躬方向依赖这一点。
@@ -197,8 +226,8 @@ unity test --mode PlayMode --output /tmp/play.xml .
 
 | 范围 | 用例数 | 覆盖内容 |
 | --- | --- | --- |
-| EditMode | 28 | 序列匹配、配对取反、洗牌、随机序列、天平、布局比对、错误选项、剧情解析与路线、内容错误检查、实际剧情文件引用的场景和视频是否齐全 |
-| PlayMode | 17 | 服务启动、各关卡加载运行无报错、转场与检查点、拾取持久化、出口上锁、提示计数、鞠躬方向、镜面只显示第 8 层、短片播放与跳过、画面颜色和铺满、门跟随剧情、空短片位跳过、分支选择与超时、标记路线、Boot 启动、存档节点有效性检查 |
+| EditMode | 49 | 序列匹配、配对取反、洗牌、随机序列、天平、布局比对、错误选项、剧情解析与路线、内容错误检查、实际剧情文件引用的场景和视频是否齐全；显影循环、碎片与配方表、守则痕迹、信任值、结局判定、叠加层时间、时机判定、倒影延迟曲线 |
+| PlayMode | 36 | 服务启动、各关卡加载运行无报错、转场与检查点、拾取持久化、出口上锁、提示计数、鞠躬方向、镜面只显示第 8 层、短片播放与跳过、画面颜色和铺满、门跟随剧情、空短片位跳过、分支选择与超时、标记路线、Boot 启动、存档节点有效性检查；显影切层与卸载、碎片拾取、二合只计一次、叠加层短片、看过后可跳过、时机判定、倒影延迟、镜子专属物体、调色实际画面、关卡内短片、镜面视频、推镜头细看、一掠而过的物体 |
 
 `Mystic Circus > Validate Prototype Scenes` 可检查六个场景是否有丢失的脚本引用，结果写入 `SceneValidation.txt`。
 
@@ -214,7 +243,13 @@ unity test --mode PlayMode --output /tmp/play.xml .
 - `GameSession.Continue()` 从存档节点恢复：测试为避免碰真实存档，只检查了节点有效性，没有走完整读档。
 - 短片在打包后的游戏和 Windows 上的播放：目前只在 macOS 编辑器中验证过。
 
+- 通用玩法模块：相簿和守则画面看过截图，但相簿的鼠标拖拽、`Q` 切层的真人手感都没有试玩；`RevealAudio` 只验证了运行不报错，没有人耳试听。
+- 通用玩法模块依赖第一人称：`FirstPersonPlayer` 被 `RevealSystem`、`Album`、`Inspectable`、`DelayedMirrorBody`、`MirrorBody`、`PrototypeHUD` 直接引用。以后换视角要先解开这些引用。
+
 **还没有做的部分**：
+
+- 单元一场景、演员示范、摆放判定尚未制作，通用模块还没有接到任何关卡；`Endings`、`MetaProgress.NextShow` 只有规则，没有终章流程调用。
+- 照相亭的「拍照多一个人」和放大查看照片（单元三）尚未制作，相簿观察页目前只有缩略图。
 
 - 标题页、暂停菜单、设置页：`GameSettings`、`NewGame`、`Continue` 都已就绪，但没有界面调用，玩家目前无法切换语言或读档。
 - 启动时总是从头开始，并覆盖旧存档：`Boot` 目前直接调用 `Begin()`。标题页应在这里决定“新游戏”或“继续”。
