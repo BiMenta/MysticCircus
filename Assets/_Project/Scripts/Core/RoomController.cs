@@ -43,10 +43,13 @@ namespace MysticCircus
             IsSolved = true;
             Message = message;
             if (ExitLamp != null) ExitLamp.enabled = true;
-            Sfx.Play(SfxKind.Fanfare);
+            PlaySolvedSound();
             Solved?.Invoke();
         }
 
         protected void Solve(string zh, string en) => Solve(L.T(zh, en));
+
+        // Rooms that must stay wordless and quiet can replace the fanfare.
+        protected virtual void PlaySolvedSound() => Sfx.Play(SfxKind.Fanfare);
     }
 }

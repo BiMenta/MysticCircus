@@ -18,7 +18,8 @@ namespace MysticCircus
         // Non-empty: this object is a pickup, saved as a GameSession flag and hidden once taken.
         public string CollectibleId;
         // Runs after a successful use, for wiring content without a new script.
-        public UnityEvent Used;
+        // Created here as well as by serialization, so components added from code can listen to it.
+        public UnityEvent Used = new UnityEvent();
 
         Renderer[] parts;
         Color[] baseColors;

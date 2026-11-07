@@ -85,7 +85,7 @@ namespace MysticCircus
             var node = Graph.Find(id);
             if (node == null) { Debug.LogError("Story has no node: " + id); return false; }
 
-            if (node.IsFilm && !node.HasChoices && !File.Exists(FilmPath(node.video)))
+            if (node.IsFilm && !node.HasChoices && !node.HasOverlays && !File.Exists(FilmPath(node.video)))
             {
                 // An empty slot must never block the game while films are still being made.
                 Debug.LogWarning("Skipping film with no video file: " + node.video);

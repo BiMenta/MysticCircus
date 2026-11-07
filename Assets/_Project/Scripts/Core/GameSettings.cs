@@ -47,9 +47,20 @@ namespace MysticCircus
     public static class InputGate
     {
         static int holds;
-        public static bool Blocked => holds > 0;
+        static int releasedFrame = -1;
+        // Stays blocked for the rest of the frame of a release: the key press that closed a window
+        // must not also reach the player, whatever order the scripts update in.
+        public static bool Blocked => holds > 0 || Time.frameCount == releasedFrame;
         public static void Hold() => holds++;
-        public static void Release() => holds = Mathf.Max(0, holds - 1);
-        public static void Clear() => holds = 0;
+        public static void Release()
+        {
+            holds = Mathf.Max(0, holds - 1);
+            releasedFrame = Time.frameCount;
+        }
+        public static void Clear()
+        {
+            holds = 0;
+            releasedFrame = -1;
+        }
     }
 }

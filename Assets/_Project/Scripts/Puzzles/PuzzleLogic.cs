@@ -44,6 +44,10 @@ namespace MysticCircus
     {
         public enum Pan { Table = 0, Left = 1, Right = 2 }
 
+        // A performer facing the player puts something where the player sees slot `shown` (0 = player's left).
+        // Her own left is the player's right, so by her left and right the slot is the mirror image.
+        public static int MirrorSlot(int shown, int count) => count - 1 - shown;
+
         // Options paired as 0/1, 2/3, ... each answer the other, as with mirrored gestures.
         public static int Opposite(int option) => option ^ 1;
 

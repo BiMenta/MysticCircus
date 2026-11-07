@@ -15,6 +15,32 @@ namespace MysticCircus
         public string en;
     }
 
+    // Text drawn over a film or over the black hold after it (tailSeconds). Times count from the film's start.
+    [Serializable]
+    public sealed class StoryOverlay
+    {
+        public const string Typewriter = "typewriter";
+        public const string Title = "title";
+        // Two lines split by '|', printed over each other slightly out of register.
+        public const string Doubled = "doubled";
+        public const string Caption = "caption";
+
+        public float at;
+        public float until;
+        public string kind;
+        public string zh;
+        public string en;
+        // Zero uses the kind's default.
+        public float fadeIn;
+        public float fadeOut;
+        // Typewriter only: seconds per character.
+        public float charSeconds;
+        // Vertical centre as a fraction of the screen height; zero uses the kind's default.
+        public float y;
+
+        public static bool IsKnownKind(string kind) => kind == Typewriter || kind == Title || kind == Doubled || kind == Caption;
+    }
+
     [Serializable]
     public sealed class StoryChoice
     {
@@ -45,6 +71,13 @@ namespace MysticCircus
         // Film nodes: file name inside StreamingAssets/Films.
         public string video;
         public bool unskippable;
+        // With unskippable: locked the first time, skippable once this film has been seen in any run.
+        public bool skippableOnceSeen;
+        // No dimming, numbering or countdown bar around choices; for scenes that must look text-free.
+        public bool hideChrome;
+        // Seconds of black held after the video ends, for overlays; choices appear after it.
+        public float tailSeconds;
+        public StoryOverlay[] overlays = new StoryOverlay[0];
         public StorySubtitle[] subtitles = new StorySubtitle[0];
         public string promptZh;
         public string promptEn;
@@ -59,6 +92,8 @@ namespace MysticCircus
         public bool IsFilm => type == Film;
         public bool IsLevel => type == Level;
         public bool HasChoices => choices != null && choices.Length > 0;
+        // A film made only of overlays over black still plays when its video file is absent.
+        public bool HasOverlays => (overlays != null && overlays.Length > 0) || tailSeconds > 0;
     }
 
     [Serializable]
@@ -120,6 +155,15 @@ namespace MysticCircus
                     CheckTarget(node.id + " route", route.next, true);
                 }
                 foreach (var choice in node.choices) CheckTarget(node.id + " choice", choice.next, true);
+                if (node.tailSeconds < 0) problems.Add(node.id + ": tailSeconds cannot be negative.");
+                if (node.overlays != null)
+                    foreach (var overlay in node.overlays)
+                    {
+                        if (!node.IsFilm) { problems.Add(node.id + ": overlays only work on films."); break; }
+                        if (!StoryOverlay.IsKnownKind(overlay.kind)) problems.Add(node.id + ": unknown overlay kind: " + overlay.kind);
+                        if (overlay.until <= overlay.at) problems.Add(node.id + ": an overlay ends before it starts.");
+                        if (string.IsNullOrEmpty(overlay.zh) && string.IsNullOrEmpty(overlay.en)) problems.Add(node.id + ": an overlay has no text.");
+                    }
                 if (node.HasChoices && (node.defaultChoice < 0 || node.defaultChoice >= node.choices.Length))
                     problems.Add(node.id + ": defaultChoice is out of range.");
             }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace MysticCircus
@@ -8,6 +9,11 @@ namespace MysticCircus
     public sealed class PlanarMirror : MonoBehaviour
     {
         public int MaxTextureHeight = 1024;
+        // Shown in this mirror only: every other mirror hides them while it renders. Put them on the MirrorOnly
+        // layer too, or the player sees them directly. Changeable at runtime, e.g. a performer moving between mirrors.
+        public List<GameObject> OnlyHere = new List<GameObject>();
+        static readonly List<PlanarMirror> mirrors = new List<PlanarMirror>();
+        static readonly List<Renderer> hidden = new List<Renderer>();
         Camera reflectionCamera;
         RenderTexture target;
         Material material;
@@ -24,6 +30,9 @@ namespace MysticCircus
             reflectionCamera.enabled = false;
             material = GetComponent<Renderer>().material;
         }
+
+        void OnEnable() => mirrors.Add(this);
+        void OnDisable() => mirrors.Remove(this);
 
         void OnWillRenderObject()
         {
@@ -49,11 +58,31 @@ namespace MysticCircus
             reflectionCamera.projectionMatrix = source.CalculateObliqueMatrix(CameraSpacePlane(reflectionCamera, point, normal));
             reflectionCamera.transform.position = source.transform.position - 2 * Vector3.Dot(normal, source.transform.position - point) * normal;
 
+            HideOtherMirrorsExclusives();
             bool culling = GL.invertCulling;
             GL.invertCulling = !culling;
-            reflectionCamera.Render();
-            GL.invertCulling = culling;
+            try { reflectionCamera.Render(); }
+            finally
+            {
+                GL.invertCulling = culling;
+                foreach (var part in hidden) if (part != null) part.forceRenderingOff = false;
+                hidden.Clear();
+            }
             material.SetTexture("_ReflectionTex", target);
+        }
+
+        void HideOtherMirrorsExclusives()
+        {
+            foreach (var mirror in mirrors)
+            {
+                if (mirror == this) continue;
+                foreach (var owner in mirror.OnlyHere)
+                {
+                    if (owner == null || OnlyHere.Contains(owner)) continue;
+                    foreach (var part in owner.GetComponentsInChildren<Renderer>())
+                        if (!part.forceRenderingOff) { part.forceRenderingOff = true; hidden.Add(part); }
+                }
+            }
         }
 
         void EnsureTarget(Camera source)

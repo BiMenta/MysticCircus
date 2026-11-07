@@ -46,6 +46,7 @@ namespace MysticCircus
         {
             Application.targetFrameRate = 60;
             GameSettings.Load();
+            MetaProgress.Load();
             InputGate.Clear();
             if (Instance != null) return;
             var root = new GameObject("GameSession");
@@ -55,6 +56,9 @@ namespace MysticCircus
             root.AddComponent<Sfx>();
             root.AddComponent<FilmPlayer>();
             root.AddComponent<StoryDirector>();
+            root.AddComponent<Album>();
+            root.AddComponent<RuleSheetView>();
+            root.AddComponent<TimingQte>();
             DontDestroyOnLoad(root);
         }
 

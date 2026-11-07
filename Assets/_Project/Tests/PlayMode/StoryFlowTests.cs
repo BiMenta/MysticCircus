@@ -80,7 +80,12 @@ namespace MysticCircus.Tests
             Assume.That(SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null, "Requires a graphics device.");
             StoryDirector.Go("real");
             yield return Settle();
-            var camera = Object.FindAnyObjectByType<UnityEngine.Video.VideoPlayer>().targetCamera;
+            // FilmPlayer also keeps a second player for in-level clips, whose camera is off during a film.
+            Camera camera = null;
+            foreach (var player in Object.FindObjectsByType<UnityEngine.Video.VideoPlayer>(FindObjectsSortMode.None))
+                if (player.targetCamera != null && player.targetCamera.enabled) camera = player.targetCamera;
+            Assert.IsNotNull(camera, "A film should have an active camera.");
+            Assert.AreEqual("FilmStage", camera.name);
             var target = new RenderTexture(1280, 720, 24);
             camera.targetTexture = target;
             yield return new WaitForSecondsRealtime(0.5f);

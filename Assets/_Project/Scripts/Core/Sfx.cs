@@ -3,10 +3,11 @@ using UnityEngine;
 
 namespace MysticCircus
 {
-    public enum SfxKind { Click, Good, Bad, Door, Bell, Laugh, Pickup, Twang, Fanfare, Step, Page, Crank }
+    // Append new kinds at the end: scenes and tests refer to them by number.
+    public enum SfxKind { Click, Good, Bad, Door, Bell, Laugh, Pickup, Twang, Fanfare, Step, Page, Crank, Shutter, Heartbeat, Glass, Tap, Slide, Mechanism, Ripple }
 
     // Every effect is synthesised at startup, so the project needs no SFX assets to sound complete.
-    // Replace a case in Build with an imported clip when recorded audio arrives.
+    // A recorded clip at Resources/Sfx/<Kind> (e.g. Resources/Sfx/Shutter.wav) replaces the synthesised one.
     public sealed class Sfx : MonoBehaviour
     {
         const int Rate = 44100;
@@ -26,7 +27,11 @@ namespace MysticCircus
             source.spatialBlend = 0;
             var kinds = (SfxKind[])Enum.GetValues(typeof(SfxKind));
             clips = new AudioClip[kinds.Length];
-            foreach (var kind in kinds) clips[(int)kind] = Build(kind);
+            foreach (var kind in kinds)
+            {
+                var recorded = Resources.Load<AudioClip>("Sfx/" + kind);
+                clips[(int)kind] = recorded != null ? recorded : Build(kind);
+            }
             notes = new AudioClip[NoteFrequencies.Length];
             for (int i = 0; i < notes.Length; i++)
             {
@@ -100,6 +105,31 @@ namespace MysticCircus
                     return Make("Step", 0.13f, t => { soft += (Noise() - soft) * 0.12f; return soft * Mathf.Exp(-t * 34) * 1.3f; });
                 case SfxKind.Page: return Make("Page", 0.32f, t => Noise() * Mathf.Sin(Mathf.PI * t / 0.32f) * Mathf.Abs(Mathf.Sin(Tau * 20 * t)) * 0.16f);
                 case SfxKind.Crank: return Make("Crank", 0.5f, t => Noise() * Mathf.Pow(Mathf.Max(0, Mathf.Sin(Tau * 11 * t)), 16) * 0.5f);
+                // Placeholders below: the plan asks for recorded shutter and heartbeat sounds.
+                case SfxKind.Shutter:
+                    return Make("Shutter", 0.24f, t =>
+                        Noise() * Mathf.Exp(-t * 110) * 0.45f
+                        + (t > 0.075f ? Noise() * Mathf.Exp(-(t - 0.075f) * 150) * 0.35f : 0)
+                        + Tone(190, t, 0, 45) * 0.25f);
+                case SfxKind.Heartbeat:
+                    // Monitor beep, not a pulse: a short sine that cuts off.
+                    return Make("Heartbeat", 0.32f, t => Mathf.Sin(Tau * 980 * t) * (t < 0.11f ? 1 : Mathf.Exp(-(t - 0.11f) * 60)) * 0.22f);
+                case SfxKind.Glass:
+                    return Make("Glass", 2.2f, t => (Tone(1318, t, 0, 1.6f) + 0.7f * Tone(1322, t, 0, 1.7f) + 0.4f * Tone(1975, t, 0, 2.4f) + 0.2f * Tone(2637, t, 0, 3.5f)) * 0.16f);
+                case SfxKind.Tap:
+                    return Make("Tap", 0.09f, t => Tone(2300, t, 0, 70) * 0.3f + Noise() * Mathf.Exp(-t * 320) * 0.18f);
+                case SfxKind.Slide:
+                    float rub = 0;
+                    return Make("Slide", 0.7f, t => { rub += (Noise() - rub) * 0.08f; return rub * Mathf.Sin(Mathf.PI * t / 0.7f) * 0.9f; });
+                case SfxKind.Mechanism:
+                    float rumble = 0;
+                    return Make("Mechanism", 1f, t =>
+                    {
+                        rumble += (Noise() - rumble) * 0.03f;
+                        return Noise() * Mathf.Pow(Mathf.Max(0, Mathf.Sin(Tau * 9 * t)), 24) * 0.45f + rumble * Mathf.Exp(-t * 2.5f) * 1.2f;
+                    });
+                case SfxKind.Ripple:
+                    return Make("Ripple", 1.3f, t => Mathf.Sin(Tau * (900 - 260 * t) * t + Mathf.Sin(Tau * 6 * t) * 3) * Mathf.Exp(-t * 3) * 0.16f);
                 default: throw new ArgumentOutOfRangeException(nameof(kind));
             }
         }

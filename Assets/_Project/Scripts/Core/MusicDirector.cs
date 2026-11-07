@@ -11,6 +11,8 @@ namespace MysticCircus
         float blend = 1;
         float trackVolume = 1;
         float previousVolume;
+        // Drops the music while a clip plays inside a level, so the clip's own sound is heard.
+        float duck = 1;
 
         void Awake()
         {
@@ -55,8 +57,9 @@ namespace MysticCircus
         void Update()
         {
             blend = Mathf.Min(1, blend + Time.unscaledDeltaTime / FadeSeconds);
-            current.volume = blend * trackVolume * GameSettings.MusicVolume;
-            previous.volume = (1 - blend) * previousVolume * GameSettings.MusicVolume;
+            duck = Mathf.MoveTowards(duck, FilmPlayer.ClipPlaying ? 0.1f : 1, Time.unscaledDeltaTime * 3);
+            current.volume = blend * trackVolume * GameSettings.MusicVolume * duck;
+            previous.volume = (1 - blend) * previousVolume * GameSettings.MusicVolume * duck;
             if (blend >= 1 && previous.isPlaying) previous.Stop();
         }
     }
