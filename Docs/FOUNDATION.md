@@ -8,7 +8,8 @@
 
 | 工作 | 是否需要 | 说明 |
 | --- | --- | --- |
-| 存档、设置、双语、转场、音乐、音效、移动、交互 | 不用重写 | 直接调用底层 |
+| 存档、设置、双语、转场、音乐、音效、移动、交互、短片播放 | 不用重写 | 直接调用底层 |
+| 调整顺序、替换短片 | 不用写代码 | 改 `story.json` 或替换视频，见 [CONTENT_GUIDE.md](CONTENT_GUIDE.md) |
 | 替换模型、贴图、材质 | 需要 | 美术资源到位后替换 |
 | 摆放场景、灯光、镜头 | 需要 | 可在编辑器里手工摆放，也可用代码生成 |
 | **每关的谜题规则** | **需要写少量代码** | 继承 `RoomController`，大多只需几十行 |
@@ -23,14 +24,16 @@
 ```text
 内容层（随关卡替换）    场景、模型、贴图、各关 RoomController 子类、UI
 ─────────────────────────────────────────────────────────────
-底层（本文档）          交互 Interactable · 玩家 FirstPersonPlayer · 关卡基类 RoomController
+剧情（story.json）      关卡和短片的顺序、分支
+─────────────────────────────────────────────────────────────
+底层（本文档）          剧情 StoryDirector、FilmPlayer · 交互 Interactable · 玩家 FirstPersonPlayer · 关卡基类 RoomController
                         角色 PuppetRig、ActorLook · 镜面 PlanarMirror、MirrorBody
                         服务 GameSession、ScreenFader、MusicDirector、Sfx、GameSettings、InputGate
 ─────────────────────────────────────────────────────────────
-纯逻辑（不依赖引擎）    SequenceMatcher、PuzzleLogic
+纯逻辑（不依赖引擎）    SequenceMatcher、PuzzleLogic、StoryGraph 的路线与检查
 ```
 
-`GameSession`、`ScreenFader`、`MusicDirector`、`Sfx` 在游戏启动时自动创建，并跨场景保留，**不需要放进场景**。
+`GameSession`、`ScreenFader`、`MusicDirector`、`Sfx`、`FilmPlayer`、`StoryDirector` 在游戏启动时自动创建，并跨场景保留，**不需要放进场景**。
 
 运行时代码属于程序集 `MysticCircus.Runtime`（`Assets/_Project/Scripts`）。编辑器工具和测试各有独立程序集。
 
@@ -66,10 +69,10 @@ public sealed class BellRoomController : RoomController
 1. 放入带 `CharacterController` 和 `FirstPersonPlayer` 的玩家，并绑定 `View` 相机。
 2. 新建物体，挂上上面的控制器。
 3. 给每个可互动物体加碰撞体和 `Interactable`，填写 `Prompt`、`Room`、`Action`、`Value`。
-4. 给出口填写 `NextScene`，并勾选 `RequiresSolved`。
+4. 给出口填写 `NextScene`，并勾选 `RequiresSolved`。去向由剧情决定，`NextScene` 只在该场景不属于剧情时生效，但必须填写，门才会被当作出口。
 5. 放一个 `SceneAmbience` 并绑定音乐。
 6. 放入 HUD（目前是 `PrototypeHUD`），绑定 `Room` 和 `Player`。
-7. **把场景加入 Build Settings**，否则无法按名称加载。
+7. **把关卡写进 `story.json`**，再运行 `Mystic Circus > Sync Build Settings From Story`，否则无法按名称加载。
 
 ## 4. 模块说明
 
@@ -77,23 +80,39 @@ public sealed class BellRoomController : RoomController
 
 | API | 用途 |
 | --- | --- |
-| `GameSession.Instance.NewGame(scene)` | 清除存档，开始新游戏；默认进入 `00_Backstage` |
+| `GameSession.Instance.NewGame(scene)` | 清除存档，开始新游戏；默认从剧情开头开始 |
 | `GameSession.Instance.Continue()`、`GameSession.HasSave` | 读档继续；存档损坏或场景不存在时不会卡死 |
 | `SetFlag(id)`、`HasFlag(id)` | 保存任意进度，如已拾取物品、已看过的剧情 |
-| `Data` | 存档内容：当前场景、换装选择、提示次数、游玩时长、进度标记 |
+| `Data` | 存档内容：当前剧情节点、当前场景、换装选择、提示次数、游玩时长、进度标记 |
 | `GameSession.NonGameplayScenes` | 标题页等场景加入后，不记检查点也不计时 |
 | `L.T("中文", "English")` | 按当前语言返回文本 |
 | `GameSettings` | 语言、音乐和音效音量、灵敏度；修改后调用 `Save()` |
 | `InputGate.Hold()`、`Release()` | 打开菜单或对话时禁用操作，需成对调用 |
 
-存档是一个 JSON 文件，位于 `Application.persistentDataPath/save.json`。进入场景时自动保存，退出时也会保存。**存的是“进入过哪个房间”，不存房间内的谜题进度**，读档后这一关要从头开始。
+存档是一个 JSON 文件，位于 `Application.persistentDataPath/save.json`。进入场景时自动保存，退出时也会保存。**存的是到达过哪个剧情节点，不存房间内的谜题进度**，读档后这一关或这段短片要从头开始。分支选择记录在进度标记里，读档后仍然有效。
+
+### 剧情 `StoryDirector`、`FilmPlayer`
+
+剧情文件的写法见 [CONTENT_GUIDE.md](CONTENT_GUIDE.md)。
+
+| API | 用途 |
+| --- | --- |
+| `StoryDirector.Begin()` | 从剧情开头开始 |
+| `StoryDirector.Go(id)` | 跳到某个节点；转场进行中返回 false |
+| `StoryDirector.Advance()` | 当前关卡结束，进入下一个节点；不在剧情中或已是最后一个节点时返回 false |
+| `StoryDirector.Current` | 当前节点 |
+| `FilmPlayer.Skip()`、`Choose(index)` | 跳过短片、选择分支 |
+
+普通出口门会自动调用 `Advance()`。没有门的关卡，在完成时自己调用它，`EndingSequence` 就是这样做的。
 
 ### 场景与声音
 
 | API | 用途 |
 | --- | --- |
 | `ScreenFader.Load(name)` | 淡出、加载、淡入；期间玩家不可操作 |
+| `ScreenFader.Cover(routine)` | 淡出后在黑屏下执行任意工作，再淡入 |
 | `MusicDirector.Play(clip, volume)` | 交叉淡入切歌；同一首不会重头播放 |
+| `MusicDirector.Stop()` | 淡出音乐；进入短片时自动调用 |
 | `SceneAmbience` | 场景进入时自动播放绑定的音乐 |
 | `Sfx.Play(SfxKind.X, volume)` | 程序合成音效：Click、Good、Bad、Door、Bell、Laugh、Pickup、Twang、Fanfare、Step、Page、Crank |
 | `Sfx.Note(0~4)` | 音乐盒音符 C、D、E、F、G |
@@ -116,7 +135,7 @@ public sealed class BellRoomController : RoomController
 `Use()` 按以下优先级执行，只走其中一条：
 
 1. `CollectibleId` 不为空：作为拾取物，记入存档并隐藏，重新进入房间也不会再出现。
-2. `NextScene` 不为空：作为出口；若勾选了 `RequiresSolved`，未解谜时门打不开。
+2. `NextScene` 不为空：作为出口；若勾选了 `RequiresSolved`，未解谜时门打不开。打开后由剧情决定去向，场景不在剧情中时才去 `NextScene`。
 3. 否则调用 `Room.Interact(Action, Value)`。
 
 成功使用后触发 `Used` 事件，可以在 Inspector 里直接连接简单效果。准星对准时物体会自动变亮。`SetGlow(color)` 用于长期显示状态，例如琴键亮起。两者都不会改动共享材质。
@@ -178,8 +197,8 @@ unity test --mode PlayMode --output /tmp/play.xml .
 
 | 范围 | 用例数 | 覆盖内容 |
 | --- | --- | --- |
-| EditMode | 16 | 序列匹配、配对取反、洗牌、随机序列、天平、布局比对、错误选项 |
-| PlayMode | 8 | 服务启动、六个场景加载运行无报错、转场与检查点、拾取持久化、出口上锁、提示计数、鞠躬方向、镜面只显示第 8 层 |
+| EditMode | 28 | 序列匹配、配对取反、洗牌、随机序列、天平、布局比对、错误选项、剧情解析与路线、内容错误检查、实际剧情文件引用的场景和视频是否齐全 |
+| PlayMode | 17 | 服务启动、各关卡加载运行无报错、转场与检查点、拾取持久化、出口上锁、提示计数、鞠躬方向、镜面只显示第 8 层、短片播放与跳过、画面颜色和铺满、门跟随剧情、空短片位跳过、分支选择与超时、标记路线、Boot 启动、存档节点有效性检查 |
 
 `Mystic Circus > Validate Prototype Scenes` 可检查六个场景是否有丢失的脚本引用，结果写入 `SceneValidation.txt`。
 
@@ -190,11 +209,16 @@ unity test --mode PlayMode --output /tmp/play.xml .
 - 键鼠实际手感：移动、奔跑、脚步声、准星高亮。
 - `Tumble`、`MirrorBody`、`ActorLook`、音乐交叉淡入的实际效果。
 - 音效听起来如何：只验证了能生成，没有人耳试听。
-- 中文显示：`PrototypeHUD` 用的是默认字体，门锁提示现在默认为中文，能否正常显示还没看过。正式 UI 需要配置中文字体。
+- 中文显示：`PrototypeHUD` 用的是默认字体，门锁提示现在默认为中文，能否正常显示还没看过。短片字幕和选项的中文在 macOS 编辑器里已看过，显示正常，但依赖系统字体回退。正式 UI 需要配置中文字体。
+- 短片的实际鼠标点击和键盘选择：选择逻辑已测试，点击区域的真人操作没有验证。
+- `GameSession.Continue()` 从存档节点恢复：测试为避免碰真实存档，只检查了节点有效性，没有走完整读档。
+- 短片在打包后的游戏和 Windows 上的播放：目前只在 macOS 编辑器中验证过。
 
 **还没有做的部分**：
 
 - 标题页、暂停菜单、设置页：`GameSettings`、`NewGame`、`Continue` 都已就绪，但没有界面调用，玩家目前无法切换语言或读档。
+- 启动时总是从头开始，并覆盖旧存档：`Boot` 目前直接调用 `Begin()`。标题页应在这里决定“新游戏”或“继续”。
+- 短片内暂停、音量单独设置：短片音量暂时跟随音乐音量。
 - 房间内谜题进度的存档。
 - 手柄支持。
 - 第 8 层未在 Tag Manager 中命名：按编号可以正常工作，只是在编辑器里显示为空名。

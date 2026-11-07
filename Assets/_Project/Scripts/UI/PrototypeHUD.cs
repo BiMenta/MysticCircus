@@ -52,12 +52,16 @@ namespace MysticCircus
             GUI.Label(new Rect(40, height - 40, width - 80, 30), "WASD move  /  Mouse look  /  E interact  /  Esc release cursor  /  F1 room guide", small);
             if (Keyboard.current != null && Keyboard.current.f1Key.isPressed)
             {
-                GUI.Box(new Rect(width - 240, 20, 220, 260), "ROOM GUIDE / DEBUG");
-                for (int i = 0; i < SceneManager.sceneCountInBuildSettings; i++)
+                // Lists story nodes, so films can be jumped to as well as levels.
+                var nodes = StoryDirector.Graph != null ? StoryDirector.Graph.nodes : null;
+                int count = nodes != null ? nodes.Length : SceneManager.sceneCountInBuildSettings;
+                GUI.Box(new Rect(width - 240, 20, 220, 50 + count * 33), "ROOM GUIDE / DEBUG");
+                for (int i = 0; i < count; i++)
                 {
-                    string path = SceneUtility.GetScenePathByBuildIndex(i);
-                    string name = System.IO.Path.GetFileNameWithoutExtension(path);
-                    if (GUI.Button(new Rect(width - 225, 55 + i * 33, 190, 28), name)) SceneManager.LoadScene(i);
+                    string name = nodes != null ? nodes[i].id : System.IO.Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(i));
+                    if (!GUI.Button(new Rect(width - 225, 55 + i * 33, 190, 28), name)) continue;
+                    if (nodes != null) StoryDirector.Go(name);
+                    else SceneManager.LoadScene(i);
                 }
             }
         }

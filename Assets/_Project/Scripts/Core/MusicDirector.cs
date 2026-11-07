@@ -34,6 +34,13 @@ namespace MysticCircus
             instance.Switch(clip, volume);
         }
 
+        // Fades out whatever is playing, for example so a film's own soundtrack plays alone.
+        public static void Stop()
+        {
+            if (instance == null || instance.current.clip == null) return;
+            instance.Switch(null, 0);
+        }
+
         void Switch(AudioClip clip, float volume)
         {
             if (current.clip == clip) { trackVolume = volume; return; }
@@ -41,7 +48,7 @@ namespace MysticCircus
             previousVolume = trackVolume;
             trackVolume = volume;
             current.clip = clip;
-            current.Play();
+            if (clip != null) current.Play();
             blend = 0;
         }
 

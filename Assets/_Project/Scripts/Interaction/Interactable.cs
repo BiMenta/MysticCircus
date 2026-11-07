@@ -60,7 +60,8 @@ namespace MysticCircus
                 }
                 Sfx.Play(SfxKind.Door);
                 Used?.Invoke();
-                ScreenFader.Load(NextScene);
+                // The story decides where an exit leads; NextScene covers scenes outside the story.
+                if (!StoryDirector.Advance()) ScreenFader.Load(NextScene);
                 return;
             }
             if (Room != null) Room.Interact(Action, Value);

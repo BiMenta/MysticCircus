@@ -1,0 +1,35 @@
+{
+  "start": "film_opening",
+  "nodes": [
+    {
+      "id": "film_opening",
+      "type": "film",
+      "video": "film_opening.mp4",
+      "subtitles": [
+        { "from": 0.5, "to": 3.5, "zh": "占位字幕：片头短片放在这里。", "en": "Placeholder subtitle: the opening film goes here." }
+      ],
+      "next": "level_backstage"
+    },
+    { "id": "level_backstage", "type": "level", "scene": "00_Backstage", "next": "level_mirror" },
+    { "id": "level_mirror", "type": "level", "scene": "01_MirrorRoom", "next": "film_choice" },
+    {
+      "id": "film_choice",
+      "type": "film",
+      "video": "film_choice.mp4",
+      "promptZh": "占位选择：你要怎么做？",
+      "promptEn": "Placeholder choice: what do you do?",
+      "choices": [
+        { "zh": "选项 A", "en": "Option A", "next": "film_branch_a", "setFlag": "choice_a" },
+        { "zh": "选项 B", "en": "Option B", "next": "film_branch_b", "setFlag": "choice_b" }
+      ],
+      "choiceSeconds": 10,
+      "defaultChoice": 0
+    },
+    { "id": "film_branch_a", "type": "film", "video": "film_branch_a.mp4", "next": "level_illusion" },
+    { "id": "film_branch_b", "type": "film", "video": "film_branch_b.mp4", "next": "level_illusion" },
+    { "id": "level_illusion", "type": "level", "scene": "02_IllusionHall", "next": "level_puppet" },
+    { "id": "level_puppet", "type": "level", "scene": "03_PuppetStage", "next": "level_toy" },
+    { "id": "level_toy", "type": "level", "scene": "04_ToyRoom", "next": "level_finale" },
+    { "id": "level_finale", "type": "level", "scene": "05_ExteriorFinale" }
+  ]
+}

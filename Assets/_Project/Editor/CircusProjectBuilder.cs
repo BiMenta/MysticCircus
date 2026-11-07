@@ -24,7 +24,7 @@ namespace MysticCircus.Editor
         {
             if (EditorApplication.isPlaying) throw new InvalidOperationException("Stop Play mode before generating scenes.");
             foreach (string folder in new[] { "Art/Materials", "Art/Models", "Audio/Music", "Audio/SFX", "Prefabs/Characters",
-                "Prefabs/Interactables", "Scenes", "Settings", "Scripts/Core", "Scripts/Player", "Scripts/Interaction", "Scripts/Puzzles", "Scripts/UI" })
+                "Prefabs/Interactables", "Scenes", "Settings", "Scripts/Core", "Scripts/Player", "Scripts/Interaction", "Scripts/Puzzles", "Scripts/UI", "Scripts/Levels", "Scripts/Story" })
                 Directory.CreateDirectory(Root + "/" + folder);
             AssetDatabase.Refresh();
             wine = Mat("Velvet_Wine", "#532B43"); gold = Mat("Antique_Gold", "#BC9756");
@@ -59,12 +59,24 @@ namespace MysticCircus.Editor
                 if (i < 5 && i != 2) Door("Exit", new Vector3(0, 0, 7.4f), room, SceneNames[i + 1], i > 0);
                 EditorSceneManager.SaveScene(scene, path);
             }
-            var buildScenes = new List<EditorBuildSettingsScene>();
-            foreach (string name in SceneNames) buildScenes.Add(new EditorBuildSettingsScene(Root + "/Scenes/" + name + ".unity", true));
-            EditorBuildSettings.scenes = buildScenes.ToArray();
+            BootScene();
+            StoryTools.SyncBuildSettings();
             AssetDatabase.SaveAssets();
             EditorSceneManager.OpenScene(Root + "/Scenes/" + SceneNames[0] + ".unity");
             Debug.Log("MYSTIC_CIRCUS_GENERATED: six scenes, materials, player prefab, build scene order.");
+        }
+
+        // First scene in a build: empty and black. StoryDirector starts the story as soon as it loads.
+        static void BootScene()
+        {
+            string path = Root + "/Scenes/" + StoryDirector.BootScene + ".unity";
+            if (File.Exists(path)) return;
+            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            var view = new GameObject("Black Camera").AddComponent<Camera>();
+            view.clearFlags = CameraClearFlags.SolidColor;
+            view.backgroundColor = Color.black;
+            view.cullingMask = 0;
+            EditorSceneManager.SaveScene(scene, path);
         }
 
         static Material Mat(string name, string hex)

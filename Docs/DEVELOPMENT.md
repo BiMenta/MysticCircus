@@ -6,14 +6,16 @@
 
 ## 脚本职责
 
-- `GameSession`：启动时建立的持久会话，保存服装、帽子与面具选项；目前不写磁盘。
+- `GameSession`：启动时建立的持久会话，保存剧情节点、服装、进度标记等，写入 `save.json`。
+- `StoryDirector`：读取 `story.json`，决定每个关卡和短片结束后去哪里。
+- `FilmPlayer`：播放短片，处理字幕、跳过和分支选项。
 - `FirstPersonPlayer`：CharacterController 移动、Input System 键鼠输入、准星射线交互。
-- `Interactable`：通过 RoomController 的 action / value 向当前谜题发送操作，或加载下一场景。
+- `Interactable`：通过 RoomController 的 action / value 向当前谜题发送操作，或作为出口通知剧情进入下一节点。
 - `RoomController`：关卡目标、反馈消息、完成标志的共同接口；每个房间拥有独立控制器。
 - `PrototypeHUD`：即时目标、互动提示和 F1 场景导航。
 - `EndingSequence`：玩家走远并回看入口后，驱动表演者鞠躬与标题淡入。
 
-新增关卡时继承 RoomController；道具添加 Interactable 并在 Inspector 绑定控制器、action、value；出口绑定下一场景名称及 RequiresSolved。
+新增关卡时继承 RoomController；道具添加 Interactable 并在 Inspector 绑定控制器、action、value；出口填写 NextScene 及 RequiresSolved，再把关卡写进 `story.json`。完整步骤见 [CONTENT_GUIDE.md](CONTENT_GUIDE.md)。
 
 ## 可复用底层（v0.2）
 
@@ -30,7 +32,7 @@
 - 天平由计数和梁的旋转模拟；控制台直接加减循环砝码，尚无物理质量求解或完整木偶搬运动画。
 - 玩具房提供运行时生成的五个音符，旋律正确后解锁任务状态；彩线对应三个同色开关，均激活即可，没有额外颜色推理规则。
 - 换装展示在后台的占位模特上，选择保存在会话中；尚未添加玩家全身模型、第一人称手部或其他关卡的换装表现。
-- 谜题重置、存档、手柄支持、无障碍设置、暂停菜单、正式 UI 和本地化尚未实现。
+- 谜题重置、手柄支持、无障碍设置、暂停菜单、正式 UI 和本地化尚未实现。
 - 原工作区中的 `BGM1.mp3` 与 `audio.zip` 保持原样；其副本已放入 `Audio/Music`（`BGM1.mp3` 改名为 `bgm_title.mp3`），但尚未绑定到任何场景。
 
 ## 后续迭代顺序
@@ -39,6 +41,6 @@
 2. 为每关制作正式谜题原型，优先完善镜像动作与错门记忆反馈。
 3. 建立可复用道具 prefab、ScriptableObject 关卡配置及正式事件接口。
 4. 替换表演者与道具模型，加入动画、反射、灯光、音乐与声音引导。
-5. 补齐存档、重置、菜单、中文文本与完整流程体验测试。
+5. 补齐重置、菜单、中文文本与完整流程体验测试。
 
 当前没有导出可执行安装包；开发入口是 Unity 编辑器中的后台场景。

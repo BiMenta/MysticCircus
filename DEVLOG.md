@@ -12,3 +12,8 @@
 功能归属：神秘马戏团 v0.2 可复用底层
 改动：新增与关卡内容无关的底层：存档与进度标记、设置与双语、输入闸门、场景淡入淡出、BGM 交叉淡入、程序合成音效、角色姿态、换装应用、平面镜反射、纯逻辑谜题规则；扩展 RoomController、Interactable、FirstPersonPlayer；脚本与编辑器代码划分为独立程序集，新增 EditMode 与 PlayMode 测试；将七首 BGM 副本放入 Audio/Music，尚未绑定场景。关卡内容、场景与美术按用户要求未改动，等待参考视频后再制作。改动前的备份位于上级目录 MysticCircus_v0.1_backup.tar.gz。详情见 Docs/DEVELOPMENT.md。
 现状：底层已提交；新增 Docs/PROJECT_STRUCTURE.md 记录目录构成；配置远程仓库 https://github.com/BiMenta/MysticCircus 并推送 dev_bi 分支。EditMode 16 项、PlayMode 8 项测试通过；键鼠实际手感未人工验证。
+
+时间：2026-11-07 Asia/Shanghai
+功能归属：神秘马戏团 v0.3 互动影片框架
+改动：新增 Assets/StreamingAssets/Story/story.json，游戏顺序改为由剧情文件驱动，关卡和短片都是节点，短片支持字幕、跳过、分支选项、选择时限和按标记走路线；新增 StoryGraph、StoryDirector、FilmPlayer、StoryTools，新增 Boot 启动场景；出口门改为优先跟随剧情，存档增加当前节点；各关专属脚本移到 Scripts/Levels（GUID 不变）。Build Settings 改为由剧情文件同步，公共配置影响：EditorBuildSettings 增加 Boot 为第一个场景。Films 内为 4 段占位视频，关卡内容未改动。操作指南见 Docs/CONTENT_GUIDE.md。
+现状：EditMode 28 项、PlayMode 17 项通过；在 macOS 编辑器里走通 Boot、短片、关卡、分支选择流程并截图确认画面，控制台 0 错误、0 警告。真人键鼠操作、打包后的游戏和 Windows 播放未验证。未提交。

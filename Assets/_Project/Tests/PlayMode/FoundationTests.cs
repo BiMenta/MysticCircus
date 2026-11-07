@@ -16,7 +16,12 @@ namespace MysticCircus.Tests
         }
 
         [OneTimeSetUp]
-        public void DisablePersistence() => GameSession.PersistenceEnabled = false;
+        public void DisablePersistence()
+        {
+            GameSession.PersistenceEnabled = false;
+            // These tests exercise each door's own NextScene; StoryFlowTests covers the story.
+            StoryDirector.UseGraph(null);
+        }
 
         [UnitySetUp]
         public IEnumerator ResetRun()
@@ -56,7 +61,7 @@ namespace MysticCircus.Tests
             {
                 string name = System.IO.Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(i));
                 // The runner adds its own bootstrap scene to this list; reloading it would disturb the run.
-                if (name.StartsWith("InitTestScene")) continue;
+                if (name.StartsWith("InitTestScene") || name == StoryDirector.BootScene) continue;
                 ScreenFader.Load(name);
                 while (ScreenFader.Busy) yield return null;
                 Assert.AreEqual(name, SceneManager.GetActiveScene().name);

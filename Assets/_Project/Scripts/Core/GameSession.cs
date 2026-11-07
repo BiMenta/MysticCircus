@@ -10,6 +10,8 @@ namespace MysticCircus
     public sealed class SaveData
     {
         public string Scene;
+        // Story node reached; takes priority over Scene when resuming.
+        public string Node;
         public int Costume;
         public int Hat;
         public int Mask;
@@ -29,7 +31,7 @@ namespace MysticCircus
         // Tests switch this off so a test run never touches the player's real save.
         public static bool PersistenceEnabled = true;
         // Scenes that never count as a checkpoint or as play time, such as a future title screen.
-        public static readonly HashSet<string> NonGameplayScenes = new HashSet<string>();
+        public static readonly HashSet<string> NonGameplayScenes = new HashSet<string> { StoryDirector.BootScene };
         public SaveData Data = new SaveData();
 
         public int Costume { get => Data.Costume; set => Data.Costume = value; }
@@ -51,6 +53,8 @@ namespace MysticCircus
             root.AddComponent<ScreenFader>();
             root.AddComponent<MusicDirector>();
             root.AddComponent<Sfx>();
+            root.AddComponent<FilmPlayer>();
+            root.AddComponent<StoryDirector>();
             DontDestroyOnLoad(root);
         }
 
@@ -86,11 +90,13 @@ namespace MysticCircus
             Save();
         }
 
-        public void NewGame(string scene = FirstScene)
+        // Starts at the story's first node unless a specific scene is requested.
+        public void NewGame(string scene = null)
         {
             ClearSave();
             Data = new SaveData();
-            ScreenFader.Load(scene);
+            if (scene == null) StoryDirector.Begin();
+            else ScreenFader.Load(scene);
         }
 
         public void Continue()
@@ -103,6 +109,7 @@ namespace MysticCircus
                 Debug.LogWarning("Ignoring unreadable save: " + error.Message);
                 Data = new SaveData();
             }
+            if (StoryDirector.CanResume(Data.Node) && StoryDirector.Go(Data.Node)) return;
             ScreenFader.Load(Application.CanStreamedLevelBeLoaded(Data.Scene ?? "") ? Data.Scene : FirstScene);
         }
 

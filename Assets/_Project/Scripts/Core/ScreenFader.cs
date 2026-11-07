@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -9,24 +10,44 @@ namespace MysticCircus
     {
         static ScreenFader instance;
         float alpha = 1;
+        Coroutine opening;
         public static bool Busy { get; private set; }
 
         void Awake() => instance = this;
-        void Start() => StartCoroutine(FadeIn());
+
+        void Start()
+        {
+            if (!Busy) opening = StartCoroutine(FadeIn());
+        }
 
         public static void Load(string scene)
         {
             if (instance == null) { SceneManager.LoadScene(scene); return; }
-            if (!Busy) instance.StartCoroutine(instance.Transition(scene));
+            Cover(() => LoadRoutine(scene));
         }
 
-        IEnumerator Transition(string scene)
+        // Fades to black, runs the work unseen, then fades back. False if a transition is already running.
+        public static bool Cover(Func<IEnumerator> whileBlack)
         {
-            Busy = true;
-            for (float t = 0; t < 0.6f; t += Time.unscaledDeltaTime) { alpha = t / 0.6f; yield return null; }
-            alpha = 1;
+            if (instance == null || Busy) return false;
+            instance.StartCoroutine(instance.Transition(whileBlack));
+            return true;
+        }
+
+        public static IEnumerator LoadRoutine(string scene)
+        {
             Time.timeScale = 1;
             yield return SceneManager.LoadSceneAsync(scene);
+        }
+
+        IEnumerator Transition(Func<IEnumerator> whileBlack)
+        {
+            Busy = true;
+            if (opening != null) StopCoroutine(opening);
+            // Continues from the current darkness, so a transition during the opening fade does not flash.
+            for (float t = alpha * 0.6f; t < 0.6f; t += Time.unscaledDeltaTime) { alpha = t / 0.6f; yield return null; }
+            alpha = 1;
+            yield return whileBlack();
             yield return FadeIn();
             Busy = false;
         }

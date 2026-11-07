@@ -34,6 +34,9 @@ namespace MysticCircus
             }
             for (float t = 0; t < 2; t += Time.deltaTime) { fade = Mathf.Clamp01(t / 2); yield return null; }
             fade = 1;
+            // Lets the story continue after the title, for example into a closing film.
+            yield return new WaitForSeconds(3);
+            StoryDirector.Advance();
         }
 
         void OnGUI()

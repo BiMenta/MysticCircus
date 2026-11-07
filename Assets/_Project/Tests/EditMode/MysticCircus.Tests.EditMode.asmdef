@@ -1,7 +1,7 @@
 {
     "name": "MysticCircus.Tests.EditMode",
     "rootNamespace": "MysticCircus.Tests",
-    "references": ["MysticCircus.Runtime", "UnityEngine.TestRunner", "UnityEditor.TestRunner"],
+    "references": ["MysticCircus.Runtime", "MysticCircus.Editor", "UnityEngine.TestRunner", "UnityEditor.TestRunner"],
     "includePlatforms": ["Editor"],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
